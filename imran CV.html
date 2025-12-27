@@ -79,10 +79,50 @@
         }
 
         .header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 30px;
             border-bottom: 3px solid #2c3e50;
             padding-bottom: 20px;
             margin-bottom: 30px;
+        }
+
+        .profile-image-container {
+            flex-shrink: 0;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 180px;
+            object-fit: cover;
+            border: 4px solid #2c3e50;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .profile-image-placeholder {
+            width: 150px;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 4px solid #2c3e50;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .profile-image-placeholder:hover {
+            transform: scale(1.05);
+        }
+
+        .header-text {
+            flex-grow: 1;
         }
 
         .header h1 {
@@ -101,6 +141,10 @@
 
         .contact-info p {
             margin: 5px 0;
+        }
+
+        #imageInput {
+            display: none;
         }
 
         .section {
@@ -215,6 +259,10 @@
             table th, table td {
                 padding: 5px;
             }
+
+            .profile-image-placeholder {
+                cursor: default;
+            }
         }
 
         @page {
@@ -234,10 +282,18 @@
 
         <div class="cv-content" id="cv-content">
             <div class="header">
-                <h1>MD. IMRAN KHAN</h1>
-                <div class="contact-info">
-                    <p><strong>Contact:</strong> +8801735268068</p>
-                    <p><strong>Email:</strong> rskhan033@gmail.com</p>
+                <div class="profile-image-container">
+                    <input type="file" id="imageInput" accept="image/*" onchange="loadImage(event)">
+                    <div class="profile-image-placeholder" id="imagePlaceholder" onclick="document.getElementById('imageInput').click()">
+                        Click to upload your photo
+                    </div>
+                </div>
+                <div class="header-text">
+                    <h1>MD. IMRAN KHAN</h1>
+                    <div class="contact-info">
+                        <p><strong>Contact:</strong> +8801735268068</p>
+                        <p><strong>Email:</strong> rskhan033@gmail.com</p>
+                    </div>
                 </div>
             </div>
 
@@ -575,15 +631,29 @@
     </div>
 
     <script>
+        function loadImage(event) {
+            const placeholder = document.getElementById('imagePlaceholder');
+            const file = event.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    placeholder.innerHTML = `<img src="${e.target.result}" class="profile-image" alt="Profile Photo">`;
+                    placeholder.onclick = function() {
+                        document.getElementById('imageInput').click();
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function downloadPDF() {
             window.print();
         }
 
         function downloadDOC() {
-            // Get the CV content
             const cvContent = document.getElementById('cv-content').innerHTML;
             
-            // Create a complete HTML document for Word
             const htmlContent = `
                 <!DOCTYPE html>
                 <html>
@@ -592,7 +662,10 @@
                     <title>CV - MD. Imran Khan</title>
                     <style>
                         body { font-family: 'Calibri', sans-serif; line-height: 1.6; margin: 20px; }
-                        .header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
+                        .header { display: flex; align-items: center; gap: 30px; border-bottom: 3px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
+                        .profile-image { width: 150px; height: 180px; object-fit: cover; border: 4px solid #2c3e50; }
+                        .profile-image-placeholder { width: 150px; height: 180px; background: #667eea; border: 4px solid #2c3e50; display: flex; align-items: center; justify-content: center; color: white; }
+                        .header-text { flex-grow: 1; }
                         .header h1 { color: #2c3e50; font-size: 32px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
                         .contact-info { color: #555; font-size: 14px; margin-top: 10px; }
                         .contact-info p { margin: 5px 0; }
@@ -617,22 +690,18 @@
                 </html>
             `;
             
-            // Create a Blob with the HTML content
             const blob = new Blob(['\ufeff', htmlContent], {
                 type: 'application/msword'
             });
             
-            // Create download link
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = 'CV_MD_Imran_Khan.doc';
             
-            // Trigger download
             document.body.appendChild(link);
             link.click();
             
-            // Clean up
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
